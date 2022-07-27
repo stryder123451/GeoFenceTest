@@ -1,0 +1,124 @@
+﻿@using GeoFenceTest.Models
+@model ShopAddress
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+    <html>
+<head>
+   <head>
+      <meta name="viewport" content="initial-scale=1.0,
+            width=device-width" />
+        <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js"
+            type="text/javascript" charset="utf-8"></script>
+        <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js"
+            type="text/javascript" charset="utf-8"></script>
+        <script src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"
+            type="text/javascript" charset="utf-8"></script>
+        <link rel="stylesheet" type="text/css"
+            href="https://js.api.here.com/v3/3.1/mapsjs-ui.css" />
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"
+       type="text/javascript" charset="utf-8"></script>
+
+  </head>
+</head>
+<body>
+
+    <form>
+    <div class="mb-3">
+   
+    <input type="text" class="form-control" id="addressEl" aria-describedby="emailHelp">
+    <button type="submit" class="btn btn-primary" href="javascript:void(0);" onclick="search(document.getElementById('addressEl').value)">Найти</button>
+  </div>
+  </form>
+
+
+ <div style="width:1300px; height: 1000px" id="mapContainer">
+     <script type="text/javascript" charset="utf-8">
+    //Initialize the Platform object:
+    var platform = new H.service.Platform({
+        'apikey': 'G2p3pzehc9M9VETiKmeha2G6nWB7-oH5umsR33pXIfE'
+    });
+
+    // Get the default map types from the Platform object:
+    var defaultLayers = platform.createDefaultLayers();
+
+    // Instantiate the map:
+    var map = new H.Map(
+        document.getElementById('mapContainer'),
+        defaultLayers.vector.normal.map,
+        {
+            zoom: 10,
+            center: { lng:39.7411 , lat: 47.15492 }
+        });
+
+
+var mapEvents = new H.mapevents.MapEvents(map);
+
+// Add event listeners:
+map.addEventListener('tap', function(evt) {
+    // Log 'tap' and 'mouse' events:
+    console.log(evt.type, evt.currentPointer.type);
+});
+
+// Instantiate the default behavior, providing the mapEvents object:
+var behavior = new H.mapevents.Behavior(mapEvents);
+
+    // Create the default UI:
+    var ui = H.ui.UI.createDefault(map, defaultLayers, 'ru-RU');
+    ui.getControl('zoom').setDisabled(false);
+    var mapSettings = ui.getControl('mapsettings');
+    var zoom = ui.getControl('zoom');
+    var scalebar = ui.getControl('scalebar');
+
+
+
+
+mapSettings.setAlignment('top-left');
+zoom.setAlignment('top-left');
+scalebar.setAlignment('top-left');
+
+
+var setMark = function(data) 
+{
+    var service = platform.getSearchService();
+    service.reverseGeocode({
+  at: data
+}, (result) => {
+  result.items.forEach((item) => {
+    // Assumption: ui is instantiated
+    // Create an InfoBubble at the returned location with
+//    // the address as its contents:
+   ui.addBubble(new H.ui.InfoBubble(item.position, {
+       content: item.address.label
+    }));
+  });
+ }, alert);
+}
+
+var search = function (address) {
+        $('#divLoading').show();
+    alert(address);
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("Search","Home")',
+            data:{address: address},
+            success: function (result) {
+               //$("#delete-conformation").modal('hide');
+                setMark(result);
+            },
+            error: function () {
+                //$("#delete-conformation").modal('hide');
+                alert('Что-то не так!');
+            }
+        });
+       }
+
+
+
+
+</script>
+ </div>
+</body>
+</html>
